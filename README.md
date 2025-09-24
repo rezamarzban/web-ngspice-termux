@@ -1,7 +1,7 @@
 # web-ngspice-termux
 Web PHP based GUI for ngspice in termux
 
-Assume PHP server and nginx in termux or similar is installed and running. Place `index.php` file from this repository in the html root folder and navigate your browser to your server address.
+Assume that PHP server and nginx in termux or similar is installed and running. Place `index.php` file from this repository in the html root folder and navigate your browser to your server address.
 
 Sample SPICE netlist for ngspice:
 
