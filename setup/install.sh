@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
 # Update and upgrade packages non-interactively
-pkg update && pkg upgrade -y
+# pkg update && pkg upgrade -y
 
 # Install required packages
 apt install -y wget ngspice
