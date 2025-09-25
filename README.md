@@ -43,3 +43,38 @@ Q2 c2 b2 0 QNPN
 
 .end
 ```
+
+Another sample SPICE netlist for ngspice:
+
+```
+* Cross-coupled NMOS and PMOS oscillator with LC tank
+
+VDD vdd 0 1.8
+
+L1 n1 n2 10uH
+C1 n1 n2 10pF
+
+MNN1 n1 n2 0 0 NMOS W=20u L=180n
+MNN2 n2 n1 0 0 NMOS W=20u L=180n
+MPP1 n1 n2 vdd vdd PMOS W=40u L=180n
+MPP2 n2 n1 vdd vdd PMOS W=40u L=180n
+
+.model NMOS NMOS(Level=1 KP=200u VTO=0.45 LAMBDA=0.02 GAMMA=0.4 PHI=0.7)
+.model PMOS PMOS(Level=1 KP=100u VTO=-0.45 LAMBDA=0.02 GAMMA=0.4 PHI=0.7)
+
+.ic V(n1)=0.91 V(n2)=0.89
+
+.options reltol=1e-4 abstol=1e-9 vntol=1e-6 method=gear maxord=2
+
+.tran 0.1n 1u uic
+
+.save time V(n1) V(n2)
+
+.control
+  run
+  set filetype=ascii
+  wrdata sim.csv v(n1) v(n2) v(n1,n2)
+.endc
+
+.end
+```
