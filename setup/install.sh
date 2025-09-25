@@ -18,6 +18,9 @@ chmod +x server.sh
 # Download index.php
 wget https://raw.githubusercontent.com/rezamarzban/web-ngspice-termux/refs/heads/main/index.php
 
+# Make index.php 755 permission 
+chmod -c 755 index.php
+
 # Copy index.php to nginx html directory
 cp index.php /data/data/com.termux/files/usr/share/nginx/html
 
