@@ -81,4 +81,4 @@ MPP2 n2 n1 vdd vdd PMOS W=40u L=180n
 .end
 ```
 
-All samples can be found at "sample" directory in this repository.
+All samples can be found at `sample` directory in this repository.
