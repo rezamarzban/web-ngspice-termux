@@ -3,8 +3,8 @@
 # Update and upgrade packages non-interactively
 pkg update && pkg upgrade -y
 
-# Install required packages non-interactively, forcing to keep old config files
-apt install -y -o Dpkg::Options::="--force-confold" wget openssl ngspice
+# Install required packages
+apt install -y wget ngspice
 
 # Download server.sh script
 wget https://raw.githubusercontent.com/rezamarzban/web-ngspice-termux/refs/heads/main/setup/server.sh
