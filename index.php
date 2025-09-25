@@ -59,12 +59,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (file_exists($csvfile)) {
         $lines = file($csvfile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         $data = [];
-        foreach ($lines as $i => $line) {
-            if ($i == 0) continue; // skip header
-            $parts = preg_split('/\s+/', trim($line));
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (empty($line)) continue;
+            $parts = preg_split('/\s+/', $line);
             if (count($parts) > 1) {
-                $row = [];
-                foreach ($parts as $p) $row[] = (float)$p;
+                $row = array_map('floatval', $parts);
                 $data[] = $row;
             }
         }
@@ -107,9 +107,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             function computeMinMax(arr) {
-                let lo = Infinity, hi = -Infinity;
-                for (let v of arr) { if (v < lo) lo = v; if (v > hi) hi = v; }
-                return {min: lo, max: hi};
+                const finiteArr = arr.filter(Number.isFinite);
+                if (finiteArr.length === 0) return {min: 0, max: 0};
+                return {min: Math.min(...finiteArr), max: Math.max(...finiteArr)};
             }
 
             function createPlotBlock(idx, colIndex, color, xarr, yarr, xColIndex) {
@@ -151,14 +151,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 ctx.clearRect(0,0,canvas.width/dpr,canvas.height/dpr);
 
-                const margin = 50;
+                const margin = 60; // Increased margin for longer labels
                 const W = canvas.width/dpr;
                 const H = canvas.height/dpr;
                 const w = W - margin*2;
                 const h = H - margin*2;
 
-                const xmin = Math.min(...xarr), xmax = Math.max(...xarr);
-                const ymin = Math.min(...yarr), ymax = Math.max(...yarr);
+                const xmm = computeMinMax(xarr);
+                const xmin = xmm.min, xmax = xmm.max;
+                const ymm = computeMinMax(yarr);
+                const ymin = ymm.min, ymax = ymm.max;
                 const xscale = v => margin + ((v - xmin) / (xmax - xmin || 1)) * w;
                 const yscale = v => margin + h - ((v - ymin) / (ymax - ymin || 1)) * h;
 
@@ -186,21 +188,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ctx.lineTo(margin + w, margin + h);
                 ctx.stroke();
 
-                // ticks & labels for x
+                // ticks & labels for x (with rotation to prevent overlap)
                 ctx.fillStyle = '#000';
                 ctx.font = '12px sans-serif';
-                ctx.textAlign = 'center';
                 for (let i=0;i<=4;i++){
                     const t = xmin + i*(xmax-xmin)/4;
                     const x = xscale(t);
-                    ctx.fillText(Number.isFinite(t)?t.toExponential(3):t, x, margin + h + 16);
+                    const label = Number.isFinite(t) ? t.toExponential(3) : t;
+                    ctx.save();
+                    ctx.translate(x, margin + h + 8);
+                    ctx.rotate(-Math.PI / 4);
+                    ctx.textAlign = 'right';
+                    ctx.fillText(label, 0, 0);
+                    ctx.restore();
                 }
-                // y ticks (left)
+                // y ticks (left, adjusted position)
                 ctx.textAlign = 'right';
                 for (let j=0;j<=4;j++){
                     const v = ymin + j*(ymax-ymin)/4;
                     const y = yscale(v);
-                    ctx.fillText(Number.isFinite(v)?v.toExponential(3):v, margin - 6, y + 4);
+                    const label = Number.isFinite(v) ? v.toExponential(3) : v;
+                    ctx.fillText(label, margin - 8, y + 4);
                 }
 
                 // plot line
@@ -214,16 +222,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 ctx.stroke();
 
-                // axis labels
-                ctx.fillStyle = '#000';
-                ctx.textAlign = 'center';
-                ctx.fillText(xLabel, margin + w/2, H - 8);
-                ctx.save();
-                ctx.translate(14, margin + h/2);
-                ctx.rotate(-Math.PI/2);
-                ctx.textAlign = 'center';
-                ctx.fillText(yLabel, 0, 0);
-                ctx.restore();
+                // Removed axis labels
             }
 
             function drawCombinedPlot(canvas, xarr, ycols, colorList, xColIndex, yColLabels) {
@@ -236,18 +235,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 ctx.clearRect(0,0,canvas.width/dpr,canvas.height/dpr);
 
-                const margin = 50;
+                const margin = 60; // Increased margin
                 const W = canvas.width/dpr;
                 const H = canvas.height/dpr;
                 const w = W - margin*2;
                 const h = H - margin*2;
 
-                const xmin = Math.min(...xarr), xmax = Math.max(...xarr);
+                const xmm = computeMinMax(xarr);
+                const xmin = xmm.min, xmax = xmm.max;
 
                 // compute combined y range
                 let allY = [];
-                ycols.forEach(c => allY = allY.concat(data.map(r => r[c])));
-                const ymin = Math.min(...allY), ymax = Math.max(...allY);
+                ycols.forEach(c => allY = allY.concat(data.map(r => r[c]).filter(Number.isFinite)));
+                const ymm = computeMinMax(allY);
+                const ymin = ymm.min, ymax = ymm.max;
 
                 const xscale = v => margin + ((v - xmin) / (xmax - xmin || 1)) * w;
                 const yscale = v => margin + h - ((v - ymin) / (ymax - ymin || 1)) * h;
@@ -276,14 +277,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ctx.lineTo(margin + w, margin + h);
                 ctx.stroke();
 
-                // ticks & labels for x
+                // ticks & labels for x (with rotation)
                 ctx.fillStyle = '#000';
                 ctx.font = '12px sans-serif';
-                ctx.textAlign = 'center';
                 for (let i=0;i<=4;i++){
                     const t = xmin + i*(xmax-xmin)/4;
                     const x = xscale(t);
-                    ctx.fillText(Number.isFinite(t)?t.toExponential(3):t, x, margin + h + 16);
+                    const label = Number.isFinite(t) ? t.toExponential(3) : t;
+                    ctx.save();
+                    ctx.translate(x, margin + h + 8);
+                    ctx.rotate(-Math.PI / 4);
+                    ctx.textAlign = 'right';
+                    ctx.fillText(label, 0, 0);
+                    ctx.restore();
+                }
+
+                // y ticks (left, added for combined plot)
+                ctx.textAlign = 'right';
+                for (let j=0;j<=4;j++){
+                    const v = ymin + j*(ymax-ymin)/4;
+                    const y = yscale(v);
+                    const label = Number.isFinite(v) ? v.toExponential(3) : v;
+                    ctx.fillText(label, margin - 8, y + 4);
                 }
 
                 // plot each y
@@ -314,19 +329,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     legendY += 18;
                 });
 
-                // axis labels
-                ctx.fillStyle = '#000';
-                ctx.textAlign = 'center';
-                ctx.fillText('Column ' + (xColIndex+1), margin + w/2, H - 8);
+                // Removed axis labels
             }
 
             function renderPlots() {
+                const scrollY = window.scrollY;
                 // clear previous
                 plotsContainer.innerHTML = '';
                 const xcol = parseInt(xsel.value);
                 const ycols = getSelectedYCols();
                 if (!ycols.length) {
                     plotsContainer.innerHTML = '<p class=\"hint\">No Y column selected</p>';
+                    window.scrollTo(0, scrollY);
                     return;
                 }
                 const xarr = data.map(r => r[xcol]);
@@ -371,6 +385,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         drawSinglePlot(canvas, xarr, yarr, color, 'Column ' + (xcol+1), 'Column ' + (c+1));
                     });
                 }
+                window.scrollTo(0, scrollY);
             }
 
             // initial render
@@ -385,13 +400,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             echo "<p>No numeric rows found in sim.csv.</p>";
         }
+        unlink($csvfile);
     } else {
         echo "<p><em>No sim.csv found. Make sure your netlist writes CSV using wrdata sim.csv or similar in a .control block.</em></p>";
     }
 
     echo "</div></body></html>";
 
-    // cleanup netlist (keep CSV if you want to inspect it later)
+    // cleanup netlist
     unlink($filename);
     exit;
 }
