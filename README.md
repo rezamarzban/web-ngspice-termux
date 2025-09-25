@@ -6,6 +6,8 @@ PHP web app for running SPICE simulations using ngspice in Termux, allowing user
 Assume that PHP server and nginx, ngspice in termux or similar is installed and running. Place `index.php` file from this repository in the root html folder and navigate your browser to your PHP web server address. If PHP server and nginx, ngspice is not installed, Run simply :
 
 ```
+pkg update && pkg upgrade -y
+pkg install openssl -y
 curl -s https://raw.githubusercontent.com/rezamarzban/web-ngspice-termux/main/setup/install.sh | bash
 ```
 
