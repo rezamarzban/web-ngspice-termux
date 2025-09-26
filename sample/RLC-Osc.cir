@@ -1,0 +1,24 @@
+* RLC-driven NPN switch with 50kHz square wave input
+
+V1 1 0 PULSE(0 5 0 10n 10n 10u 20u)
+R1 1 2 0.01
+L1 2 3 0.1u
+C1 3 0 1n
+R2 3 4 5k
+V2 6 0 DC 5
+R3 6 5 100
+Q1 5 4 0 NPN_MODEL
+
+.model NPN_MODEL NPN(Is=1e-14 BF=100 Vaf=50)
+
+.tran 10n 200u uic
+.option numdgt=9
+.save all
+
+.control
+  run
+  set filetype=ascii
+  wrdata sim.csv v(3) v(4) v(5)
+.endc
+
+.end
