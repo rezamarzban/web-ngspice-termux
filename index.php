@@ -342,7 +342,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ctx.stroke();
             });
 
-            const legendX = margin + 8;
+            /* const legendX = margin + 8;
             let legendY = margin + 8;
             ctx.font = '12px sans-serif';
             ctx.textAlign = 'left';
@@ -352,7 +352,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ctx.fillStyle = '#000';
                 ctx.fillText(lbl, legendX + 18, legendY);
                 legendY += 18;
-            });
+            }); */
         }
 
         function renderPlots() {
