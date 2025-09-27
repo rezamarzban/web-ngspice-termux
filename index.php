@@ -464,7 +464,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <textarea name="netlist" placeholder="Paste your SPICE netlist here..."><?= h($netlist) ?></textarea><br>
         <input type="submit" value="Run ngspice">
     </form>
-    <p class="hint">Tip: include a .control block with <code>wrdata filename.csv ...</code> to generate CSV for plotting.</p>
+    <p class="hint">Tip: first line of netlist is not included in simulation by ngspice, so do not write netlist code at first line, use it for comment. include a .control block with <code>wrdata filename.csv ...</code> to generate CSV for plotting, This app recognize the name of CSV file(s) in the provided netlist and plot data.</p>
 </div>
 </body>
 </html>
