@@ -454,6 +454,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         h1 { font-size: 1.4em; text-align: center; }
         textarea { width: 100%; height: 260px; font-family: monospace; font-size: 13px; padding: 8px; box-sizing: border-box; }
         input[type=submit] { padding: 10px 18px; font-size: 15px; margin-top: 8px; }
+        .hint { font-size:12px; color:#444; }
         @media (max-width:600px) { textarea { height:180px; font-size:12px; } input[type=submit]{width:100%;} }
     </style>
 </head>
